@@ -19,10 +19,14 @@ public class ToDoService {
 		todoList.add(new ToDo(++todoCount, "chandra", "learn aws", LocalDate.now().plusWeeks(3), false));
 		todoList.add(
 				new ToDo(++todoCount, "chandra", "learn full stack development", LocalDate.now().plusYears(3), false));
+		todoList.add(new ToDo(++todoCount, "venkata", "aws certified", LocalDate.now().plusYears(3), false));
+		todoList.add(new ToDo(++todoCount, "venkata", "azure certified", LocalDate.now().plusYears(3), false));
 	}
 
 	public List<ToDo> fetchTodosByUsername(String username) {
-		return todoList;
+		Predicate<? super ToDo> predicate = todo -> todo.username.equalsIgnoreCase(username);
+		List<ToDo> li = todoList.stream().filter(predicate).toList();
+		return li;
 	}
 
 	public List<ToDo> addTodo(String username, String description, LocalDate date, boolean isDone) {

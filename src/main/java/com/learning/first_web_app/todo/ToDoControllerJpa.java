@@ -1,6 +1,7 @@
 package com.learning.first_web_app.todo;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,19 +19,21 @@ import org.springframework.web.bind.annotation.SessionAttributes;
 
 import jakarta.validation.Valid;
 
-//@Controller
+@Controller
 //@SessionAttributes("name")
-public class ToDoController {
+public class ToDoControllerJpa {
 
 	@Autowired
-	ToDoService toDoService;
+	TodoRepository todoRepository;
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
 	@GetMapping("/todo-list")
 	public String listAllTodos(ModelMap model) {
+
 		String username = getLoggedInUsername();
-		List<ToDo> li = toDoService.fetchTodosByUsername(username);
+		List<ToDo> li = todoRepository.findByUsername(username);
+
 		model.put("todos", li);
 		logger.info("GET: /todo-list map: {}", model);
 		return "todoList";
@@ -58,22 +61,27 @@ public class ToDoController {
 			return "addTodo";
 		}
 		String username = getLoggedInUsername();
-		toDoService.addTodo(username, todo.getDescription(), todo.getTargetDate(), todo.isDone());
+		todo.setUsername(username);
+
+		todoRepository.save(todo);
 		return "redirect:/todo-list";
 	}
 
 	@GetMapping("/delete-todo")
 	public String deleteTodo(@RequestParam long id) {
-		toDoService.deleteTodoById(id);
+		todoRepository.deleteById(id);
 		return "redirect:/todo-list";
 	}
 
 	@GetMapping("/update-todo")
 	public String updateTodo(@RequestParam long id, ModelMap model) {
-		ToDo todo = toDoService.findTodoById(id);
-		model.put("todo", todo);
-		logger.info("/update-todo GET map:{}", model);
-		return "addTodo";
+		Optional<ToDo> todo = todoRepository.findById(id);
+		if (todo.isPresent()) {
+			model.put("todo", todo.get());
+			logger.info("/update-todo GET map:{}", model);
+			return "addTodo";
+		}
+		return "redirect:/todo-list";
 	}
 
 	@PostMapping("/update-todo")
@@ -85,11 +93,13 @@ public class ToDoController {
 		updateTodo.setUsername(getLoggedInUsername());
 		logger.info("POST: /update-todo todo:{}", updateTodo);
 
-		toDoService.updateTodoById(updateTodo);
+		Optional<ToDo> todoOptional = todoRepository.findById(updateTodo.getId());
+		if (todoOptional.isPresent()) {
+			todoRepository.save(updateTodo);
+		}
 		return "redirect:/todo-list";
 	}
-	
-	
+
 	private String getLoggedInUsername() {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		return authentication.getName();

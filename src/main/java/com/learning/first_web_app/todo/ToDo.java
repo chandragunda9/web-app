@@ -2,19 +2,26 @@ package com.learning.first_web_app.todo;
 
 import java.time.LocalDate;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
 import jakarta.validation.constraints.Size;
 
+@Entity(name = "todo")
 public class ToDo {
 
+	@Id
+	@GeneratedValue
 	long id;
+
 	String username;
-	
+
 	@Size(min = 5, message = "Enter atleast 5 characters")
 	String description;
-	
+
 	LocalDate targetDate;
 	boolean done;
-	
+
 	public ToDo() {
 		super();
 	}
@@ -73,7 +80,5 @@ public class ToDo {
 		return "ToDo [id=" + id + ", username=" + username + ", description=" + description + ", targetDate="
 				+ targetDate + ", done=" + done + "]";
 	}
-
-	
 
 }
